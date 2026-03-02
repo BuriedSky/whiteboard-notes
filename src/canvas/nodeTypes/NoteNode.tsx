@@ -16,14 +16,14 @@ function NoteNode({ data, selected }: NodeProps<NoteNodeData>) {
         id="l-t"
         type="target"
         position={Position.Left}
-        className="note-handle"
+        className="note-handle note-handle-left"
         isConnectable={Boolean(data.connectMode)}
       />
       <Handle
         id="r-s"
         type="source"
         position={Position.Right}
-        className="note-handle"
+        className="note-handle note-handle-right"
         isConnectable={Boolean(data.connectMode)}
       />
     </div>

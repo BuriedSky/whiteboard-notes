@@ -164,6 +164,73 @@ function nodeCenter(node: NoteNode): { x: number; y: number } {
   };
 }
 
+function calculateJunctionPosition(conclusionNode: NoteNode, inputNodes: NoteNode[]): XYPosition {
+  const inputsCenter = inputNodes.map((node) => nodeCenter(node)).reduce(
+    (acc, center, _, arr) => ({
+      x: acc.x + center.x / arr.length,
+      y: acc.y + center.y / arr.length,
+    }),
+    { x: 0, y: 0 },
+  );
+  const conclusionCenter = nodeCenter(conclusionNode);
+  const junctionCenter = {
+    x: inputsCenter.x * 0.35 + conclusionCenter.x * 0.65,
+    y: inputsCenter.y * 0.35 + conclusionCenter.y * 0.65,
+  };
+
+  return {
+    x: junctionCenter.x - JUNCTION_SIZE / 2,
+    y: junctionCenter.y - JUNCTION_SIZE / 2,
+  };
+}
+
+function updateJunctionPositions(snapshot: BoardSnapshot): BoardSnapshot {
+  const clean = sanitizeSnapshot(snapshot);
+  const noteMap = new Map(clean.nodes.filter((n) => isNoteNode(n)).map((n) => [n.id, n]));
+  let changed = false;
+
+  const nextNodes = clean.nodes.map((node) => {
+    if (!isJunctionNode(node)) {
+      return node;
+    }
+
+    const conclusionId = (node.data as JunctionNodeData).junctionFor;
+    const conclusionNode = noteMap.get(conclusionId);
+    if (!conclusionNode) {
+      return node;
+    }
+
+    const inputNodes = clean.edges
+      .filter((edge) => edge.target === node.id)
+      .map((edge) => noteMap.get(edge.source))
+      .filter((input): input is NoteNode => Boolean(input));
+
+    if (inputNodes.length < 2) {
+      return node;
+    }
+
+    const nextPosition = calculateJunctionPosition(conclusionNode, inputNodes);
+    if (Math.abs(nextPosition.x - node.position.x) < 0.5 && Math.abs(nextPosition.y - node.position.y) < 0.5) {
+      return node;
+    }
+
+    changed = true;
+    return {
+      ...node,
+      position: nextPosition,
+    };
+  });
+
+  if (!changed) {
+    return clean;
+  }
+
+  return {
+    ...clean,
+    nodes: nextNodes,
+  };
+}
+
 function normalizeGraph(snapshot: BoardSnapshot, repositionJunctions: boolean): BoardSnapshot {
   const clean = sanitizeSnapshot(snapshot);
   const noteNodes = clean.nodes.filter((node) => isNoteNode(node));
@@ -229,26 +296,10 @@ function normalizeGraph(snapshot: BoardSnapshot, repositionJunctions: boolean): 
 
       let nextPosition = fallback;
       if (repositionJunctions) {
-        const inputsCenter = inputIds
-          .map((inputId) => noteMap.get(inputId))
-          .filter((node): node is NoteNode => Boolean(node))
-          .map((node) => nodeCenter(node))
-          .reduce(
-            (acc, center, _, arr) => ({
-              x: acc.x + center.x / arr.length,
-              y: acc.y + center.y / arr.length,
-            }),
-            { x: 0, y: 0 },
-          );
-        const conclusionCenter = nodeCenter(conclusionNode);
-        const junctionCenter = {
-          x: inputsCenter.x * 0.35 + conclusionCenter.x * 0.65,
-          y: inputsCenter.y * 0.35 + conclusionCenter.y * 0.65,
-        };
-        nextPosition = {
-          x: junctionCenter.x - JUNCTION_SIZE / 2,
-          y: junctionCenter.y - JUNCTION_SIZE / 2,
-        };
+        const inputNodes = inputIds
+          .map((id) => noteMap.get(id))
+          .filter((node): node is NoteNode => Boolean(node));
+        nextPosition = calculateJunctionPosition(conclusionNode, inputNodes);
       }
 
       const junctionId = existingJunction?.id ?? `j-${conclusionNode.id}-${nanoid(5)}`;
@@ -315,6 +366,13 @@ function withPresent(
   normalize = true,
   repositionJunctions = true,
 ): HistoryState {
+  if (!recordHistory && !normalize) {
+    return {
+      ...state,
+      present: nextPresent,
+    };
+  }
+
   const sanitized = normalize
     ? normalizeGraph(nextPresent, repositionJunctions)
     : sanitizeSnapshot(nextPresent);
@@ -343,7 +401,7 @@ function historyReducer(state: HistoryState, action: Action): HistoryState {
     }
     case 'APPLY_EDGE_CHANGES': {
       const edges = applyEdgeChanges(action.changes, state.present.edges);
-      return withPresent(state, { ...state.present, edges }, action.recordHistory, true, true);
+      return withPresent(state, { ...state.present, edges }, action.recordHistory, action.recordHistory, true);
     }
     case 'ADD_NODE': {
       const node: NoteNode = {
@@ -477,16 +535,16 @@ function historyReducer(state: HistoryState, action: Action): HistoryState {
       };
     }
     case 'COMMIT_FROM_SNAPSHOT': {
-      const normalizedPresent = normalizeGraph(state.present, true);
-      if (snapshotsEqual(action.snapshot, normalizedPresent)) {
+      const settledPresent = updateJunctionPositions(state.present);
+      if (snapshotsEqual(action.snapshot, settledPresent)) {
         return {
           ...state,
-          present: normalizedPresent,
+          present: settledPresent,
         };
       }
       return {
         past: [...state.past, cloneSnapshot(action.snapshot)],
-        present: normalizedPresent,
+        present: settledPresent,
         future: [],
       };
     }

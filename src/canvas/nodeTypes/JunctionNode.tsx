@@ -10,14 +10,14 @@ function JunctionNode({ data }: NodeProps<JunctionNodeData>) {
         id="l-t"
         type="target"
         position={Position.Left}
-        className="junction-handle"
+        className="junction-handle junction-handle-left"
         isConnectable={Boolean(data.connectMode)}
       />
       <Handle
         id="r-s"
         type="source"
         position={Position.Right}
-        className="junction-handle"
+        className="junction-handle junction-handle-right"
         isConnectable={Boolean(data.connectMode)}
       />
     </div>

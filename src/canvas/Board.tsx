@@ -13,18 +13,17 @@ import NoteNodeComponent from './nodeTypes/NoteNode';
 import JunctionNodeComponent from './nodeTypes/JunctionNode';
 import type { JunctionNodeData, NoteEdge, NoteNode, NoteNodeData } from '../state/store';
 
-const nodeTypes = {
-  note: NoteNodeComponent,
-  junction: JunctionNodeComponent,
-};
-
 const defaultEdgeOptions: Partial<Edge> = {
   type: 'smoothstep',
   markerEnd: {
     type: MarkerType.ArrowClosed,
+    color: '#b8860b',
+    width: 14,
+    height: 14,
   },
   style: {
-    strokeWidth: 1.5,
+    stroke: 'rgba(0, 0, 0, 0.18)',
+    strokeWidth: 1.4,
   },
 };
 
@@ -88,7 +87,29 @@ const Board = forwardRef<BoardHandle, BoardProps>(function Board(
   const boardRef = useRef<HTMLDivElement | null>(null);
   const [rfInstance, setRfInstance] = useState<ReactFlowInstance | null>(null);
 
-  const displayNodes = useMemo(() => {
+  const nodeTypes = useMemo(
+    () => ({
+      note: NoteNodeComponent,
+      junction: JunctionNodeComponent,
+    }),
+    [],
+  );
+
+  const titleAndTypeKey = useMemo(
+    () =>
+      nodes
+        .map((node) => {
+          if (node.type === 'junction') {
+            return `${node.id}:j:${(node.data as JunctionNodeData).junctionFor}`;
+          }
+          return `${node.id}:n:${(node.data as NoteNodeData).title ?? ''}`;
+        })
+        .sort()
+        .join('|'),
+    [nodes],
+  );
+
+  const formulaMap = useMemo(() => {
     const noteIds = new Set<string>();
     const titleMap = new Map<string, string>();
     const junctionForMap = new Map<string, string>();
@@ -129,28 +150,41 @@ const Board = forwardRef<BoardHandle, BoardProps>(function Board(
       incomingMap.set(conclusionId, list);
     }
 
-    return nodes.map((node) => {
+    const nextMap = new Map<string, string>();
+    for (const node of nodes) {
       if (node.type === 'junction') {
+        continue;
+      }
+      const targetTitle = titleMap.get(node.id) ?? '(无标题)';
+      nextMap.set(node.id, formulaFromInputs(incomingMap.get(node.id) ?? [], targetTitle));
+    }
+
+    return nextMap;
+  }, [edges, nodes, titleAndTypeKey]);
+
+  const displayNodes = useMemo(
+    () =>
+      nodes.map((node) => {
+        if (node.type === 'junction') {
+          return {
+            ...node,
+            data: {
+              ...(node.data as JunctionNodeData),
+              connectMode,
+            },
+          };
+        }
         return {
           ...node,
           data: {
-            ...(node.data as JunctionNodeData),
+            ...(node.data as NoteNodeData),
+            formulaText: formulaMap.get(node.id) ?? '',
             connectMode,
           },
         };
-      }
-      const targetTitle = titleMap.get(node.id) ?? '(无标题)';
-      const formulaText = formulaFromInputs(incomingMap.get(node.id) ?? [], targetTitle);
-      return {
-        ...node,
-        data: {
-          ...(node.data as NoteNodeData),
-          formulaText,
-          connectMode,
-        },
-      };
-    });
-  }, [connectMode, nodes, edges]);
+      }),
+    [nodes, connectMode, formulaMap],
+  );
 
   const createNodeAtViewportCenter = useCallback(() => {
     if (!rfInstance || !boardRef.current) {
@@ -198,7 +232,9 @@ const Board = forwardRef<BoardHandle, BoardProps>(function Board(
         selectionOnDrag={!connectMode}
         elementsSelectable
       >
-        {showGrid ? <Background variant={BackgroundVariant.Dots} gap={18} size={1.2} /> : null}
+        {showGrid ? (
+          <Background variant={BackgroundVariant.Dots} gap={18} size={0.9} color="rgba(0,0,0,0.06)" />
+        ) : null}
         <Controls showInteractive={false} />
       </ReactFlow>
     </div>

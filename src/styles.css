@@ -1,13 +1,16 @@
 ﻿:root {
-  font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  color: #1f2933;
-  background: #f3f6fa;
+  font-family: Inter, 'Segoe UI', system-ui, -apple-system, sans-serif;
+  color: #2f3133;
+  background: radial-gradient(circle at 30% 20%, #f3f3f3 0%, #ffffff 65%);
   line-height: 1.5;
   font-weight: 400;
+  color-scheme: light;
 }
 
 * {
   box-sizing: border-box;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease,
+    transform 0.2s ease;
 }
 
 html,
@@ -16,35 +19,54 @@ body,
   width: 100%;
   height: 100%;
   margin: 0;
+  background: #ffffff;
+}
+
+body {
+  color: #2e3135;
+  background: #ffffff;
 }
 
 button,
 input,
 textarea {
   font: inherit;
+  color: inherit;
 }
 
 button {
-  border: 1px solid #d2d8e0;
+  border: 1px solid rgba(0, 0, 0, 0.14);
   background: #ffffff;
   border-radius: 8px;
   padding: 8px 12px;
   cursor: pointer;
+  position: relative;
 }
 
 button:hover {
-  border-color: #8ca3bf;
+  border-color: #b08a2e;
+}
+
+button:hover::after {
+  content: '';
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: -1px;
+  height: 1px;
+  background: rgba(176, 138, 46, 0.65);
+  box-shadow: 0 0 6px rgba(176, 138, 46, 0.22);
 }
 
 button.active {
-  background: #0f6cbd;
-  border-color: #0f6cbd;
-  color: #ffffff;
+  border-color: #b8860b;
+  color: #7d621f;
+  background: #fffdf7;
 }
 
 button.danger {
-  color: #b42318;
-  border-color: #efb0ac;
+  color: #8a6b22;
+  border-color: rgba(176, 138, 46, 0.45);
 }
 
 button:disabled {
@@ -57,6 +79,7 @@ button:disabled {
   flex-direction: column;
   width: 100%;
   height: 100%;
+  background: #ffffff;
 }
 
 .toolbar {
@@ -69,9 +92,9 @@ button:disabled {
   gap: 8px;
   flex-wrap: wrap;
   padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.95);
-  border-bottom: 1px solid #dde4ed;
-  backdrop-filter: blur(6px);
+  background: #ffffff;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
 .workspace {
@@ -81,43 +104,65 @@ button:disabled {
   height: 100%;
   margin-top: 62px;
   padding: 10px;
+  background: #fafafa;
 }
 
 .board-wrap {
   width: 100%;
   height: 100%;
   min-height: 420px;
-  border: 1px solid #d6dce4;
+  border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 12px;
-  background: #ffffff;
+  background: #fafafa;
   overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3), 0 10px 26px rgba(0, 0, 0, 0.06);
+}
+
+.react-flow {
+  background: #fafafa;
 }
 
 .editor-panel {
-  border: 1px solid #d6dce4;
+  border: 1px solid rgba(0, 0, 0, 0.1);
   background: #ffffff;
   border-radius: 12px;
   padding: 14px;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
 .editor-panel h3 {
   margin: 0 0 4px;
   font-size: 16px;
+  color: #333539;
+}
+
+.editor-panel label {
+  color: #6d7177;
+  font-size: 12px;
 }
 
 .editor-panel input,
 .editor-panel textarea {
-  border: 1px solid #ccd5df;
+  border: 1px solid rgba(0, 0, 0, 0.12);
   border-radius: 8px;
   padding: 8px;
   width: 100%;
+  background: #ffffff;
+  color: #35383d;
 }
 
 .editor-panel textarea {
   resize: vertical;
+}
+
+.editor-panel input:focus,
+.editor-panel textarea:focus {
+  outline: none;
+  border-color: #b08a2e;
+  box-shadow: 0 0 0 2px rgba(176, 138, 46, 0.14);
 }
 
 .status-tip {
@@ -125,15 +170,16 @@ button:disabled {
   top: 74px;
   right: 12px;
   z-index: 30;
-  background: #0f766e;
-  color: #ffffff;
+  background: #ffffff;
+  color: #7a6222;
+  border: 1px solid rgba(176, 138, 46, 0.45);
   padding: 8px 12px;
   border-radius: 8px;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
 }
 
 .status-tip.warn {
-  background: #b54708;
+  border-color: rgba(176, 138, 46, 0.65);
 }
 
 .hidden-input {
@@ -143,44 +189,142 @@ button:disabled {
 .note-node {
   min-width: 200px;
   max-width: 260px;
-  border: 1px solid #c8d0dc;
-  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 11px;
   background: #ffffff;
   padding: 10px;
-  box-shadow: 0 3px 10px rgba(33, 47, 67, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.note-node:hover {
+  border-color: #b8860b;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.14);
 }
 
 .note-node.is-selected {
-  border-color: #0f6cbd;
-  box-shadow: 0 0 0 2px rgba(15, 108, 189, 0.2);
+  border-color: #b8860b;
+  box-shadow: 0 0 0 1px rgba(184, 134, 11, 0.58), 0 0 14px rgba(184, 134, 11, 0.14),
+    0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 .note-formula {
   margin-bottom: 8px;
   padding-bottom: 6px;
-  border-bottom: 1px dashed #d8dee8;
+  border-bottom: 1px dashed rgba(0, 0, 0, 0.12);
   font-size: 12px;
-  color: #345;
+  letter-spacing: 0.4px;
+  color: #9a7a2b;
 }
 
 .note-title {
   font-weight: 600;
+  font-size: 15px;
   margin-bottom: 6px;
-  color: #162333;
+  color: #2b2d31;
 }
 
 .note-body {
   white-space: pre-wrap;
   font-size: 13px;
-  color: #384a61;
+  line-height: 1.6;
+  color: #6e7278;
 }
 
 .note-handle {
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: #0f6cbd;
+  background: #b08a2e;
   border: 1px solid #ffffff;
+  box-shadow: 0 0 0 1px rgba(176, 138, 46, 0.25);
+}
+
+.note-handle:hover {
+  box-shadow: 0 0 0 1px rgba(176, 138, 46, 0.42), 0 0 7px rgba(176, 138, 46, 0.28);
+}
+
+.junction-node {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: #b8860b;
+  border: 1px solid #ffffff;
+  box-shadow: 0 0 8px rgba(184, 134, 11, 0.4);
+}
+
+.react-flow__node-junction:hover .junction-node {
+  box-shadow: 0 0 10px rgba(184, 134, 11, 0.46);
+}
+
+.junction-handle {
+  width: 7px;
+  height: 7px;
+  background: #b8860b;
+  border: 1px solid #ffffff;
+  opacity: 0;
+}
+
+.react-flow__edge-path {
+  stroke: rgba(0, 0, 0, 0.18);
+  stroke-width: 1.4;
+  transition: stroke 0.2s ease, stroke-width 0.2s ease, filter 0.2s ease;
+}
+
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: #b8860b;
+  stroke-width: 2;
+  filter: drop-shadow(0 0 6px rgba(184, 134, 11, 0.24));
+}
+
+.react-flow__arrowhead path {
+  fill: rgba(184, 134, 11, 0.78);
+  stroke: rgba(184, 134, 11, 0.78);
+}
+
+.react-flow__controls {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+}
+
+.react-flow__controls button {
+  background: #ffffff;
+  color: #5d6168;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.react-flow__controls button:hover {
+  background: #fffaf0;
+  color: #7b6222;
+}
+
+.react-flow__attribution {
+  background: rgba(255, 255, 255, 0.9) !important;
+  color: #8a8d92 !important;
+}
+
+.react-flow__selection {
+  border: 1px solid rgba(184, 134, 11, 0.35);
+  background: rgba(184, 134, 11, 0.08);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f0f0f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c2c4c8;
+  border-radius: 999px;
+  border: 2px solid #f0f0f1;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #aeb1b7;
 }
 
 @media (max-width: 980px) {
@@ -197,23 +341,4 @@ button:disabled {
     overflow: auto;
     z-index: 25;
   }
-}
-
-
-.junction-node {
-  width: 12px;
-  height: 12px;
-  border-radius: 999px;
-  background: #0f6cbd;
-  border: 2px solid #ffffff;
-  box-shadow: 0 0 0 1px #0f6cbd;
-  pointer-events: none;
-}
-
-.junction-handle {
-  width: 8px;
-  height: 8px;
-  background: #0f6cbd;
-  border: 1px solid #ffffff;
-  opacity: 0;
 }
